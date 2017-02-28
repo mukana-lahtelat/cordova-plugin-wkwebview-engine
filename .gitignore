@@ -5,6 +5,7 @@
 *.cache
 Thumbs.db
 *.DS_Store
+.vscode/
 
 *.bak
 *.cache
@@ -21,4 +22,3 @@ node_modules
 
 
 
- 
