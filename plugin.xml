@@ -56,6 +56,11 @@
         <source-file src="src/ios/CDVWKWebViewUIDelegate.m" />
         <asset src="src/ios/wk-plugin.js" target="wk-plugin.js" />
 
+        <header-file src="src/ios/YWebView.h" />
+        <source-file src="src/ios/YWebView.m" />
+        <header-file src="src/ios/NSString+Cookie.h" />
+        <source-file src="src/ios/NSString+Cookie.m" />
+
         <!--GCDWebServer headers-->
         <header-file src="src/ios/GCDWebServer/Core/GCDWebServer.h" />
         <header-file src="src/ios/GCDWebServer/Core/GCDWebServerConnection.h" />

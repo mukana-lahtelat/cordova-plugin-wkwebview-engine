@@ -23,6 +23,7 @@
 #import <MobileCoreServices/MobileCoreServices.h>
 #import <objc/message.h>
 #import "GCDWebServer.h"
+#import "YWebView.h"
 
 #define CDV_BRIDGE_NAME @"cordova"
 #define CDV_IONIC_STOP_SCROLL @"stopScroll"
@@ -63,7 +64,7 @@
             return nil;
         }
 
-        self.engineWebView = [[WKWebView alloc] initWithFrame:frame];
+        self.engineWebView = [[YWebView alloc] initWithFrame:frame];
         self.fileQueue = [[NSOperationQueue alloc] init];
 
         self.webServer = [[GCDWebServer alloc] init];
@@ -118,7 +119,7 @@
     configuration.userContentController = userContentController;
 
     // re-create WKWebView, since we need to update configuration
-    WKWebView* wkWebView = [[WKWebView alloc] initWithFrame:self.engineWebView.frame configuration:configuration];
+    WKWebView* wkWebView = [[YWebView alloc] initWithFrame:self.engineWebView.frame configuration:configuration];
     wkWebView.UIDelegate = self.uiDelegate;
     self.engineWebView = wkWebView;
 
@@ -216,9 +217,9 @@ static void * KVOContext = &KVOContext;
 
             NSURL *url = [[NSURL URLWithString:@"http://localhost:8080"] URLByAppendingPathComponent:request.URL.path];
             NSURLRequest *request2 = [NSURLRequest requestWithURL:url];
-            return [(WKWebView*)_engineWebView loadRequest:request2];
+            return [(YWebView*)_engineWebView loadRequest:request2];
         } else {
-            return [(WKWebView*)_engineWebView loadRequest:request];
+            return [(YWebView*)_engineWebView loadRequest:request];
         }
     } else { // can't load, print out error
         NSString* errorHtml = [NSString stringWithFormat:
