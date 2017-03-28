@@ -60,7 +60,7 @@
 {
     self = [super init];
     if (self) {
-        if (NSClassFromString(@"WKWebView") == nil) {
+        if (NSClassFromString(@"YWebView") == nil) {
             return nil;
         }
 
@@ -119,7 +119,7 @@
     configuration.userContentController = userContentController;
 
     // re-create WKWebView, since we need to update configuration
-    WKWebView* wkWebView = [[YWebView alloc] initWithFrame:self.engineWebView.frame configuration:configuration];
+    YWebView* wkWebView = [[YWebView alloc] initWithFrame:self.engineWebView.frame configuration:configuration];
     wkWebView.UIDelegate = self.uiDelegate;
     self.engineWebView = wkWebView;
 
@@ -172,7 +172,7 @@ static void * KVOContext = &KVOContext;
     if (context == KVOContext) {
         if (object == [self webView] && [keyPath isEqualToString: @"URL"] && [object valueForKeyPath:keyPath] == nil){
             NSLog(@"URL is nil. Reloading WKWebView");
-            [(WKWebView*)_engineWebView reload];
+            [(YWebView*)_engineWebView reload];
         }
     } else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
@@ -182,13 +182,20 @@ static void * KVOContext = &KVOContext;
 - (void) onAppWillEnterForeground:(NSNotification*)notification {
     if ([self shouldReloadWebView]) {
         NSLog(@"%@", @"CDVWKWebViewEngine reloading!");
-        [(WKWebView*)_engineWebView reload];
+        [(YWebView*)_engineWebView reload];
     }
+}
+
+- (void)reloadWebView:(CDVInvokedUrlCommand*)command
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [(WKWebView*)_engineWebView reload];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 - (BOOL)shouldReloadWebView
 {
-    WKWebView* wkWebView = (WKWebView*)_engineWebView;
+    YWebView* wkWebView = (YWebView*)_engineWebView;
     return [self shouldReloadWebView:wkWebView.URL title:wkWebView.title];
 }
 
@@ -239,12 +246,12 @@ static void * KVOContext = &KVOContext;
 
 - (id)loadHTMLString:(NSString*)string baseURL:(NSURL*)baseURL
 {
-    return [(WKWebView*)_engineWebView loadHTMLString:string baseURL:baseURL];
+    return [(YWebView*)_engineWebView loadHTMLString:string baseURL:baseURL];
 }
 
 - (NSURL*) URL
 {
-    return [(WKWebView*)_engineWebView URL];
+    return [(YWebView*)_engineWebView URL];
 }
 
 - (BOOL) canLoadRequest:(NSURLRequest*)request
@@ -262,7 +269,7 @@ static void * KVOContext = &KVOContext;
 
 - (void)updateSettings:(NSDictionary*)settings
 {
-    WKWebView* wkWebView = (WKWebView*)_engineWebView;
+    YWebView* wkWebView = (YWebView*)_engineWebView;
 
     wkWebView.configuration.preferences.minimumFontSize = [settings cordovaFloatSettingForKey:@"MinimumFontSize" defaultValue:0.0];
 
@@ -322,7 +329,7 @@ static void * KVOContext = &KVOContext;
     id navigationDelegate = [info objectForKey:kCDVWebViewEngineWKNavigationDelegate];
     id uiDelegate = [info objectForKey:kCDVWebViewEngineWKUIDelegate];
 
-    WKWebView* wkWebView = (WKWebView*)_engineWebView;
+    YWebView* wkWebView = (YWebView*)_engineWebView;
 
     if (scriptMessageHandlers && [scriptMessageHandlers isKindOfClass:[NSDictionary class]]) {
         NSArray* allKeys = [scriptMessageHandlers allKeys];
@@ -423,7 +430,7 @@ static void * KVOContext = &KVOContext;
 
 - (void)handleStopScroll
 {
-    WKWebView* wkWebView = (WKWebView*)_engineWebView;
+    YWebView* wkWebView = (YWebView*)_engineWebView;
     NSLog(@"CDVWKWebViewEngine: handleStopScroll");
     [self recursiveStopScroll:[wkWebView scrollView]];
     [wkWebView evaluateJavaScript:@"window.IonicStopScroll.fire()" completionHandler:nil];
@@ -449,12 +456,12 @@ static void * KVOContext = &KVOContext;
 
 #pragma mark WKNavigationDelegate implementation
 
-- (void)webView:(WKWebView*)webView didStartProvisionalNavigation:(WKNavigation*)navigation
+- (void)webView:(YWebView*)webView didStartProvisionalNavigation:(WKNavigation*)navigation
 {
     [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:CDVPluginResetNotification object:webView]];
 }
 
-- (void)webView:(WKWebView*)webView didFinishNavigation:(WKNavigation*)navigation
+- (void)webView:(YWebView*)webView didFinishNavigation:(WKNavigation*)navigation
 {
     CDVViewController* vc = (CDVViewController*)self.viewController;
     [CDVUserAgentUtil releaseLock:vc.userAgentLockToken];
@@ -462,7 +469,7 @@ static void * KVOContext = &KVOContext;
     [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:CDVPageDidLoadNotification object:webView]];
 }
 
-- (void)webView:(WKWebView*)theWebView didFailNavigation:(WKNavigation*)navigation withError:(NSError*)error
+- (void)webView:(YWebView*)theWebView didFailNavigation:(WKNavigation*)navigation withError:(NSError*)error
 {
     CDVViewController* vc = (CDVViewController*)self.viewController;
     [CDVUserAgentUtil releaseLock:vc.userAgentLockToken];
@@ -478,7 +485,7 @@ static void * KVOContext = &KVOContext;
     }
 }
 
-- (void)webViewWebContentProcessDidTerminate:(WKWebView *)webView
+- (void)webViewWebContentProcessDidTerminate:(YWebView *)webView
 {
     [webView reload];
 }
@@ -494,7 +501,7 @@ static void * KVOContext = &KVOContext;
 }
 
 
-- (void) webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction*)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
+- (void) webView:(YWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction*)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 {
     NSURL* url = [navigationAction.request URL];
     CDVViewController* vc = (CDVViewController*)self.viewController;
