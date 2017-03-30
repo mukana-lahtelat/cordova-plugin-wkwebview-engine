@@ -185,6 +185,46 @@ static void * KVOContext = &KVOContext;
     }
 }
 
+- (void)appLaunchInfo:(CDVInvokedUrlCommand*)command
+{
+    int result;
+
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+
+    NSString *currentAppVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+    NSString *previousVersion = [defaults objectForKey:@"appVersion"];
+    if (!previousVersion) {
+        // first launch
+        result = -1;
+        [defaults setObject:currentAppVersion forKey:@"appVersion"];
+        [defaults synchronize];
+    } else if ([previousVersion isEqualToString:currentAppVersion]) {
+        // same version
+        result = 0;
+    } else {
+        result = 1;
+        [defaults setObject:currentAppVersion forKey:@"appVersion"];
+        [defaults synchronize];
+    }
+
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:result];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void)shutdownApplication:(CDVInvokedUrlCommand*)command
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    exit(0);
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void)reloadWebView:(CDVInvokedUrlCommand*)command
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [(WKWebView*)_engineWebView reloadFromOrigin];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 - (BOOL)shouldReloadWebView
 {
     WKWebView* wkWebView = (WKWebView*)_engineWebView;

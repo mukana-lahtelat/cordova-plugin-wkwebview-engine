@@ -24,4 +24,8 @@
 
 @property (nonatomic, strong, readonly) id <WKUIDelegate> uiDelegate;
 
+- (void)reloadWebView:(CDVInvokedUrlCommand*)command;
+- (void)shutdownApplication:(CDVInvokedUrlCommand*)command;
+- (void)appLaunchInfo:(CDVInvokedUrlCommand*)command;
+
 @end
