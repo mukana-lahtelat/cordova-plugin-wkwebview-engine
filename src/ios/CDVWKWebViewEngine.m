@@ -121,6 +121,7 @@
     // re-create WKWebView, since we need to update configuration
     WKWebView* wkWebView = [[YWebView alloc] initWithFrame:self.engineWebView.frame configuration:configuration];
     wkWebView.UIDelegate = self.uiDelegate;
+    wkWebView.navigationDelegate = (id <WKNavigationDelegate>)self;
     self.engineWebView = wkWebView;
 
     if (IsAtLeastiOSVersion(@"9.0") && [self.viewController isKindOfClass:[CDVViewController class]]) {
@@ -491,6 +492,17 @@ static void * KVOContext = &KVOContext;
     }
 
     return NO;
+}
+
+ (void)webView:(WKWebView *)webView decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler{
+    NSHTTPURLResponse *response = (NSHTTPURLResponse *)navigationResponse.response;
+    NSArray *cookies =[NSHTTPCookie cookiesWithResponseHeaderFields:[response allHeaderFields] forURL:response.URL];
+
+    for (NSHTTPCookie *cookie in cookies) {
+        [[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookie:cookie];
+    }
+
+    decisionHandler(WKNavigationResponsePolicyAllow);
 }
 
 
